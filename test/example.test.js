@@ -1,16 +1,22 @@
+const { WrapperBuilder } = require("redstone-flash-storage");
+
 describe("Example contract", function () {
 
   it("Interacting with the example contract", async () => {
     // Deploying
     const ExampleContract = await ethers.getContractFactory("Example");
     const contract = await ExampleContract.deploy();
+    const wrappedContract = WrapperBuilder
+                              .wrapLite(contract)
+                              .usingPriceFeed("redstone-stocks", "TSLA");
+    await wrappedContract.authorizeProvider();
 
     // Interacting
-    const tx = await contract.setCurrentPrice();
+    const tx = await wrappedContract.setCurrentPrice();
     await tx.wait();
-    const isOverpriced = await contract.isOverpriced();
+    const isOverpriced = await wrappedContract.isOverpriced();
     console.log({ isOverpriced });
-    const priceFromContract = await contract.getLastPrice();
-    console.log({ priceFromContract: priceFromContract.toNumber() });
+    const priceFromContract = await wrappedContract.getLastPrice();
+    console.log({ priceFromContract: priceFromContract.toNumber() / 10 ** 8 });
   });
 });
